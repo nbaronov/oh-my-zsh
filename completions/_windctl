@@ -1,0 +1,78 @@
+#compdef windctl
+#
+## Zsh completion for windctl
+## Copy to a directory in your $fpath as a file named _windctl
+
+__modes() {
+    local -a commands
+    commands=(
+    "local:operations on local sources"
+    "snow:ServiceNow operations"
+    "link:linking between local and ServiceNow"
+    "check:sanity checks"
+    )
+    _describe "windctl modes" commands
+}
+
+__local_nouns() {
+    local -a commands
+    commands=(
+    "org:vCD Organizations"
+    "pvdc:vCD Physical VDCs"
+    "ovdc:vCD Organization VDCs"
+    "vcenter:vCenter servers"
+    "pvdc_resource_pool:vCD Physical VDC Resource Pools"
+    "vcenter_cluster:vCenter clusters"
+    "esx_server:ESXi hosts"
+    )
+    _describe "windctl local nouns" commands
+}
+
+__snow_commands() {
+    local -a commands
+    commands=(
+    "collect:Collect objects from ServiceNow"
+    "emit:Create missing objects in ServiceNow"
+    "diff:Update ServiceNow objects to match reality"
+    )
+    _describe "windctl ServiceNow modes" commands
+}
+
+__snow_nouns() {
+    local -a commands
+    commands=(
+    "location:Locations"
+    "silo:Silos"
+    "vcloud_instance:vCloud Director instances"
+    "org:vCD Organizations"
+    "pvdc:vCD Physical VDCs"
+    "ovdc:vCD Organization VDCs"
+    "vcenter:vCenter servers"
+    "vcenter_cluster:vCenter clusters"
+    "esx_server:ESXi hosts"
+    )
+    _describe "windctl local nouns" commands
+}
+
+if (( CURRENT == 2 )); then
+    __modes
+    return
+fi
+
+if (( CURRENT == 3 )); then
+    case "${words[2]}" in
+        local) __local_nouns ;;
+        snow) __snow_commands ;;
+        link) __local_nouns ;;
+        check) __local_nouns ;;
+    esac
+fi
+
+if (( CURRENT == 4 )); then
+    if [[ "${words[2]}" == "snow" ]]; then
+        case "${words[3]}" in
+            collect) __snow_nouns ;;
+            emit|diff) __local_nouns ;;
+        esac
+    fi
+fi

@@ -82,6 +82,7 @@ source $ZSH/oh-my-zsh.sh
 # export LANG=en_US.UTF-8
 
 export LC_CTYPE=bg_BG.UTF-8
+export GOGC=2000
 
 # Preferred editor for local and remote sessions
 # if [[ -n $SSH_CONNECTION ]]; then
@@ -104,3 +105,71 @@ export LC_CTYPE=bg_BG.UTF-8
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+#
+setopt HIST_IGNORE_SPACE
+
+function chpwd_profiles() {
+    local profile context
+    local -i reexecute
+
+    context=":chpwd:profiles:$PWD"
+    zstyle -s "$context" profile profile || profile='default'
+    zstyle -T "$context" re-execute && reexecute=1 || reexecute=0
+
+    if (( ${+parameters[CHPWD_PROFILE]} == 0 )); then
+        typeset -g CHPWD_PROFILE
+        local CHPWD_PROFILES_INIT=1
+        (( ${+functions[chpwd_profiles_init]} )) && chpwd_profiles_init
+    elif [[ $profile != $CHPWD_PROFILE ]]; then
+        (( ${+functions[chpwd_leave_profile_$CHPWD_PROFILE]} )) \
+            && chpwd_leave_profile_${CHPWD_PROFILE}
+    fi
+    if (( reexecute )) || [[ $profile != $CHPWD_PROFILE ]]; then
+        (( ${+functions[chpwd_profile_$profile]} )) && chpwd_profile_${profile}
+    fi
+
+    CHPWD_PROFILE="${profile}"
+    return 0
+}
+
+chpwd_functions=( ${chpwd_functions} chpwd_profiles )
+
+zstyle ':chpwd:profiles:/Users/cyco/projects/snowstorm(|/|/*)' profile snowstorm
+zstyle ':chpwd:profiles:/Users/cyco/projects/wind(|/|/*)' profile wind
+zstyle ':chpwd:profiles:/Users/cyco/projects/go_playground(|/|/*)' profile go_playground
+export CHPWD_SAVED_PATH="${PATH}"
+
+chpwd_profile_default() {
+    [[ ${profile} == ${CHPWD_PROFILE} ]] && return 1
+
+    export GOPATH=~/r-d/go
+    export PATH=$GOPATH/bin:$CHPWD_SAVED_PATH
+    unset VAULT_ADDR
+}
+
+chpwd_profile_snowstorm() {
+    [[ ${profile} == ${CHPWD_PROFILE} ]] && return 1
+
+    export GOPATH=~/work/vmware/snowstorm
+    export PATH=$GOPATH/bin:$CHPWD_SAVED_PATH
+    export VAULT_ADDR=http://localhost:8200
+}
+
+chpwd_profile_wind() {
+    [[ ${profile} == ${CHPWD_PROFILE} ]] && return 1
+
+    export GOPATH=~/projects/wind
+    export PATH=$GOPATH/bin:$CHPWD_SAVED_PATH
+    export VAULT_ADDR=http://localhost:8200
+}
+
+chpwd_profile_go_playground() {
+    [[ ${profile} == ${CHPWD_PROFILE} ]] && return 1
+
+    export GOPATH=~/projects/go_playground
+    export PATH=$GOPATH/bin:$CHPWD_SAVED_PATH
+    export VAULT_ADDR=http://localhost:8200
+}
+
+autoload -U compinit
+compinit
