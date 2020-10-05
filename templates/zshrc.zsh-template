@@ -178,3 +178,8 @@ autoload -U compinit
 compinit
 bindkey '^R' history-incremental-pattern-search-backward
 export PATH="/usr/local/sbin:$PATH"
+
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+
+setopt extendedglob
+bindkey '^R' history-incremental-pattern-search-backward
